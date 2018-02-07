@@ -94,6 +94,8 @@ function track(action, time) {
     const post = https.request(postOptions);
     post.write(`v=1&t=event&ec=render&ea=${action}&ev=${Math.round(time)}&tid=${config['analyticsTrackingId']}&cid=${uuidv4()}`);
     post.end();
+  } else if (!!config['debug']) {
+    console.log('Render time ' + Math.round(time) + " ms");
   }
 }
 
