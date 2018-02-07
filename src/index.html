@@ -214,7 +214,7 @@ the License.
         return;
       }
 
-      var httpRegex = /(http(s?))\:\/\//gi;
+      var httpRegex = /(http(s?)|file)\:\/\//gi;
 
       if(!httpRegex.test(url.value)) {
         url.value = 'https://' + url.value;
