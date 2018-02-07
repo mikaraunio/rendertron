@@ -47,6 +47,7 @@ if (fs.existsSync(CONFIG_PATH)) {
 if (!module.parent && !!config['cache']) {
   app.get('/render/:url(*)', cache.middleware());
   app.get('/screenshot/:url(*)', cache.middleware());
+  app.get('/pdf/:url(*)', cache.middleware());
   // Always clear the cache for now, while things are changing.
   cache.clearCache();
 }
@@ -106,6 +107,10 @@ if (!!config['debug']) {
     console.log('Screenshot requested for ' + req.params.url);
     next();
   });
+  app.get('/pdf/:url(*)', (req, res, next) => {
+    console.log('PDF requested for ' + req.params.url);
+    next();
+  });
 }
 
 app.get('/render/:url(*)', async(request, response) => {
@@ -142,6 +147,29 @@ app.get('/screenshot/:url(*)', async(request, response) => {
       'Content-Length': img.length
     });
     response.end(img);
+    track('screenshot', now() - start);
+  } catch (err) {
+    response.status(400).send('Cannot render requested URL');
+    console.error('Cannot render requested URL');
+    console.error(err);
+  }
+});
+
+app.get('/pdf/:url(*)', async(request, response) => {
+  if (isRestricted(request.params.url)) {
+    response.status(403).send('Render request forbidden, domain excluded');
+    return;
+  }
+
+  try {
+    const start = now();
+    const result = await renderer.makePDF(request.params.url, request.query, config);
+    const pdf = new Buffer(result, 'base64');
+    response.set({
+      'Content-Type': 'application/pdf',
+      'Content-Length': pdf.length
+    });
+    response.end(pdf);
     track('screenshot', now() - start);
   } catch (err) {
     response.status(400).send('Cannot render requested URL');

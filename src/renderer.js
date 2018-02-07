@@ -276,6 +276,30 @@ class Renderer {
       }
     });
   }
+
+  makePDF(url, options, config) {
+    return new Promise(async(resolve, reject) => {
+      const tab = await CDP.New({port: config.port});
+      const client = await CDP({tab: tab, port: config.port});
+
+      const {Animation, Page, Emulation} = client;
+
+      // Accelerate global animation timeline so that loading animations
+      // are hopefully complete by the time we take the screenshot.
+      Animation.setPlaybackRate({playbackRate: 1000});
+
+      try {
+        await this._loadPage(client, url, options, config);
+        let {data} = await Page.printToPDF({printBackground: true, preferCSSPageSize: true, scale: 1.0});
+
+        await this.closeConnection(client.target.id, config.port);
+        resolve(data);
+      } catch (error) {
+        await this.closeConnection(client.target.id, config.port);
+        reject(error);
+      }
+    });
+  }
 }
 
 module.exports = new Renderer();
