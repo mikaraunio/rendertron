@@ -172,7 +172,7 @@ app.get('/pdf/:url(*)', async(request, response) => {
       'Content-Length': pdf.length
     });
     response.end(pdf);
-    track('screenshot', now() - start);
+    track('pdf', now() - start);
   } catch (err) {
     response.status(400).send('Cannot render requested URL');
     console.error('Cannot render requested URL');
