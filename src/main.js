@@ -110,7 +110,7 @@ if (!!config['debug']) {
     next();
   });
   app.get('/pdf/:url(*)', (req, res, next) => {
-    console.log('PDF requested for ' + req.params.url);
+    console.log('PDF print requested for ' + req.params.url);
     next();
   });
 }
