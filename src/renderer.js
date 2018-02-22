@@ -288,6 +288,39 @@ class Renderer {
         return string === '' || string === 'true' || string === true;
       }
 
+      function addArg(options, args, name, func) {
+        if (options[name] !== undefined) {
+          if (func) {
+            args[name] = func(options[name]);
+          } else {
+            args[name] = options[name];
+          }
+        }
+      }
+
+      let args = {
+        ignoreInvalidPageRanges: true,
+      };
+      [
+        'landscape',
+        'displayHeaderFooter',
+        'printBackground',
+        'preferCSSPageSize'
+      ].forEach((boolArg) => { addArg(options, args, boolArg, toBoolean); });
+      [
+        'scale',
+        'paperWidth',
+        'paperHeight',
+        'marginTop',
+        'marginBottom',
+        'marginLeft',
+        'marginRight'
+      ].forEach((numArg) => { addArg(options, args, numArg, toNumber); });
+      [
+        'pageRanges'
+      ].forEach((strArg) => { addArg(options, args, strArg); });
+      console.log(args);
+
       const tab = await CDP.New({port: config.port});
       const client = await CDP({tab: tab, port: config.port});
 
@@ -299,24 +332,13 @@ class Renderer {
 
       try {
         await this._loadPage(client, url, options, config);
-        let {data} = await Page.printToPDF({
-          landscape: toBoolean(options.landscape),
-          displayHeaderFooter: toBoolean(options.displayHeaderFooter),
-          printBackground: toBoolean(options.printBackground),
-          scale: toNumber(options.scale),
-          paperWidth: toNumber(options.paperWidth),
-          paperHeight: toNumber(options.paperHeight),
-          marginTop: toNumber(options.marginTop),
-          marginBottom: toNumber(options.marginBottom),
-          marginLeft: toNumber(options.marginLeft),
-          marginRight: toNumber(options.marginRight),
-          pageRanges: options.pageRanges,
-          ignoreInvalidPageRanges: true,
-        });
 
-        CDP.Close({id: client.target.id, port: config.port});
+        let {data} = await Page.printToPDF(args);
+
+        await this.closeConnection(client.target.id, config.port);
         resolve(data);
       } catch (error) {
+        await this.closeConnection(client.target.id, config.port);
         reject(error);
       }
     });
