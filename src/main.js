@@ -165,7 +165,7 @@ app.get('/pdf/:url(*)', async(request, response) => {
 
   try {
     const start = now();
-    const result = await renderer.makePDF(request.params.url, request.query, config);
+    const result = await renderer.printToPDF(request.params.url, request.query, config);
     const pdf = new Buffer(result, 'base64');
     response.set({
       'Content-Type': 'application/pdf',

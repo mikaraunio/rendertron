@@ -277,12 +277,53 @@ class Renderer {
     });
   }
 
-  makePDF(url, options, config) {
+  printToPDF(url, options, config) {
     return new Promise(async(resolve, reject) => {
+      function toNumber(string) {
+        const num = parseFloat(string);
+        return num !== NaN ? num : undefined;
+      }
+
+      function toBoolean(string) {
+        return string === '' || string === 'true' || string === true;
+      }
+
+      function addArg(options, args, name, func) {
+        if (options[name] !== undefined) {
+          if (func) {
+            args[name] = func(options[name]);
+          } else {
+            args[name] = options[name];
+          }
+        }
+      }
+
+      let args = {
+        ignoreInvalidPageRanges: true,
+      };
+      [
+        'landscape',
+        'displayHeaderFooter',
+        'printBackground',
+        'preferCSSPageSize'
+      ].forEach((boolArg) => { addArg(options, args, boolArg, toBoolean); });
+      [
+        'scale',
+        'paperWidth',
+        'paperHeight',
+        'marginTop',
+        'marginBottom',
+        'marginLeft',
+        'marginRight'
+      ].forEach((numArg) => { addArg(options, args, numArg, toNumber); });
+      [
+        'pageRanges'
+      ].forEach((strArg) => { addArg(options, args, strArg); });
+
       const tab = await CDP.New({port: config.port});
       const client = await CDP({tab: tab, port: config.port});
 
-      const {Animation, Page, Emulation} = client;
+      const {Animation, Page} = client;
 
       // Accelerate global animation timeline so that loading animations
       // are hopefully complete by the time we take the screenshot.
@@ -290,7 +331,8 @@ class Renderer {
 
       try {
         await this._loadPage(client, url, options, config);
-        let {data} = await Page.printToPDF({printBackground: true, preferCSSPageSize: true, scale: 1.0});
+
+        let {data} = await Page.printToPDF(args);
 
         await this.closeConnection(client.target.id, config.port);
         resolve(data);
