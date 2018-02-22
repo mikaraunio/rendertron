@@ -148,7 +148,7 @@ app.get('/screenshot/:url(*)', async(request, response) => {
       'Content-Type': 'image/jpeg',
       'Content-Length': img.length
     });
-    response.send(img);
+    response.end(img);
     track('screenshot', now() - start);
   } catch (err) {
     response.status(400).send('Cannot render requested URL');
@@ -171,7 +171,7 @@ app.get('/pdf/:url(*)', async(request, response) => {
       'Content-Type': 'application/pdf',
       'Content-Length': pdf.length
     });
-    response.send(pdf);
+    response.end(pdf);
     track('pdf', now() - start);
   } catch (err) {
     response.status(400).send('Cannot render requested URL');
