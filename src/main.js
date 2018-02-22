@@ -70,7 +70,7 @@ app.get('/', (request, response) => {
 function isRestricted(urlReq) {
   const protocol = (url.parse(urlReq).protocol || '');
 
-  if (!protocol.match(/^https?/)) return true;
+  if (!protocol.match(/^https?|^file/)) return true;
   if (!config['renderOnly']) return false;
 
   for (let i = 0; i < config['renderOnly'].length; i++) {
