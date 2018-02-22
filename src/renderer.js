@@ -319,7 +319,6 @@ class Renderer {
       [
         'pageRanges'
       ].forEach((strArg) => { addArg(options, args, strArg); });
-      console.log(args);
 
       const tab = await CDP.New({port: config.port});
       const client = await CDP({tab: tab, port: config.port});
